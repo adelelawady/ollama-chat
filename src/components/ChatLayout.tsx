@@ -1,9 +1,10 @@
-
 import { useState, useEffect } from "react";
 import ModelSidebar from "./ModelSidebar";
 import ChatContainer from "./ChatContainer";
 import MessageInput from "./MessageInput";
 import ChatHistory from "./ChatHistory";
+import { Button } from "@/components/ui/button";
+import { HistoryIcon, MessageSquare } from "lucide-react";
 import { dummyModels } from "@/data/dummyData";
 import { Message, Chat } from "@/types/chat";
 
