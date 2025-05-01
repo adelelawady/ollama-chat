@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import ModelSidebar from "./ModelSidebar";
 import ChatContainer from "./ChatContainer";
@@ -126,15 +127,14 @@ const ChatLayout = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      <ChatHistory 
-        chats={chats}
-        currentChatId={currentChatId}
-        onSelectChat={handleSelectChat}
-        onNewChat={handleNewChat}
-        collapsed={historySidebarCollapsed}
-      />
-
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col w-64">
+        <ChatHistory 
+          chats={chats}
+          currentChatId={currentChatId}
+          onSelectChat={handleSelectChat}
+          onNewChat={handleNewChat}
+          collapsed={historySidebarCollapsed}
+        />
         <ModelSidebar
           selectedModel={selectedModelId}
           onSelectModel={setSelectedModelId}
@@ -142,34 +142,34 @@ const ChatLayout = () => {
           collapsed={modelSidebarCollapsed}
           setCollapsed={setModelSidebarCollapsed}
         />
-        
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <div className="h-12 border-b flex items-center px-4 justify-between">
-            <div className="flex items-center">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setHistorySidebarCollapsed(!historySidebarCollapsed)}
-                className="mr-2"
-              >
-                <HistoryIcon className="h-4 w-4" />
-              </Button>
-              <h1 className="font-semibold">
-                {currentChatId ? chats.find(c => c.id === currentChatId)?.title || "Chat" : "Chat"}
-              </h1>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Model: {selectedModelName}
-            </div>
+      </div>
+
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="h-12 border-b flex items-center px-4 justify-between">
+          <div className="flex items-center">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setHistorySidebarCollapsed(!historySidebarCollapsed)}
+              className="mr-2"
+            >
+              <HistoryIcon className="h-4 w-4" />
+            </Button>
+            <h1 className="font-semibold">
+              {currentChatId ? chats.find(c => c.id === currentChatId)?.title || "Chat" : "Chat"}
+            </h1>
           </div>
-          
-          <ChatContainer
-            messages={messages}
-            selectedModelName={selectedModelName}
-            loading={loading}
-          />
-          <MessageInput onSendMessage={handleSendMessage} isLoading={loading} />
+          <div className="text-sm text-muted-foreground">
+            Model: {selectedModelName}
+          </div>
         </div>
+        
+        <ChatContainer
+          messages={messages}
+          selectedModelName={selectedModelName}
+          loading={loading}
+        />
+        <MessageInput onSendMessage={handleSendMessage} isLoading={loading} />
       </div>
     </div>
   );

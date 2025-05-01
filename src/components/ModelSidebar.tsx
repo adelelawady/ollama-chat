@@ -23,14 +23,14 @@ const ModelSidebar = ({
   return (
     <div
       className={cn(
-        "flex flex-col h-screen border-r border-border bg-card transition-all",
-        collapsed ? "w-[60px]" : "w-[280px]"
+        "flex flex-col border-t border-border bg-card transition-all",
+        collapsed ? "h-[60px]" : "h-[250px]"
       )}
     >
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-2 border-b">
         <div className={cn("flex items-center gap-2", collapsed && "hidden")}>
           <MessagesSquare className="h-5 w-5" />
-          <span className="font-semibold">Ollama Chat</span>
+          <span className="font-semibold text-sm">Models</span>
         </div>
         <Button
           variant="ghost"
@@ -46,23 +46,8 @@ const ModelSidebar = ({
         </Button>
       </div>
 
-      <div className="p-2">
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full mb-4 flex items-center justify-center gap-2",
-            collapsed ? "px-2" : ""
-          )}
-          onClick={onNewChat}
-        >
-          <PlusCircle className="h-4 w-4" />
-          {!collapsed && <span>New Chat</span>}
-        </Button>
-      </div>
-
       {!collapsed && (
-        <div className="p-2">
-          <h2 className="text-sm font-semibold mb-2 px-2">Models</h2>
+        <div className="p-2 overflow-auto flex-1">
           <ModelsList 
             selectedModel={selectedModel} 
             onSelectModel={onSelectModel}

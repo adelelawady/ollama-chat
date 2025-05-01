@@ -20,7 +20,7 @@ const ChatHistory = ({
   collapsed 
 }: ChatHistoryProps) => {
   return (
-    <div className={`flex flex-col h-full ${collapsed ? "w-16" : "w-64"} bg-background border-r border-border transition-all duration-200`}>
+    <div className={`flex flex-col flex-grow ${collapsed ? "w-16" : "w-full"} bg-background border-r border-border transition-all duration-200`}>
       <div className="flex items-center justify-between p-4 border-b">
         {!collapsed && <h2 className="font-semibold">Chat History</h2>}
         <HistoryIcon className="h-5 w-5 text-muted-foreground" />
