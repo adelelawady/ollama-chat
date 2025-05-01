@@ -1,16 +1,17 @@
-
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ModelSidebar from "./ModelSidebar";
 import ChatContainer from "./ChatContainer";
 import MessageInput from "./MessageInput";
 import ChatHistory from "./ChatHistory";
 import MacOSTitleBar from "./MacOSTitleBar";
+import { Settings, History as HistoryIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { HistoryIcon } from "lucide-react";
 import { dummyModels } from "@/data/dummyData";
 import { Message, Chat } from "@/types/chat";
 
 const ChatLayout = () => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedModelId, setSelectedModelId] = useState("llama3");
   const [loading, setLoading] = useState(false);
@@ -127,7 +128,7 @@ const ChatLayout = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground border border-border rounded-lg shadow-lg">
+    <div className="flex flex-col h-full w-full overflow-hidden bg-background text-foreground">
       <MacOSTitleBar title="Ollama Chat" />
       
       <div className="flex flex-1 overflow-hidden">
@@ -163,8 +164,17 @@ const ChatLayout = () => {
                 {currentChatId ? chats.find(c => c.id === currentChatId)?.title || "Chat" : "Chat"}
               </h1>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Model: {selectedModelName}
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-muted-foreground">
+                Model: {selectedModelName}
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate("/settings")}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
             </div>
           </div>
           
