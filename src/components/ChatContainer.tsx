@@ -27,13 +27,13 @@ const ChatContainer = ({
   // Scroll to bottom when messages change or loading state changes
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+     // messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, loading]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)]">
-      <div className="flex justify-between items-center px-4 py-2">
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex justify-between items-center px-4 py-2 border-b">
         <div className="text-sm text-muted-foreground">
           {selectedModelName ? `Using model: ${selectedModelName}` : "No model selected"}
         </div>
@@ -51,7 +51,7 @@ const ChatContainer = ({
         </div>
       ) : (
         <ScrollArea ref={scrollAreaRef} className="flex-1 px-4">
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="max-w-3xl mx-auto space-y-4 py-4">
             {messages.map((message, index) => (
               <ChatMessage key={index} message={message} />
             ))}
