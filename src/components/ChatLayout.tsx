@@ -4,8 +4,9 @@ import ModelSidebar from "./ModelSidebar";
 import ChatContainer from "./ChatContainer";
 import MessageInput from "./MessageInput";
 import ChatHistory from "./ChatHistory";
+import MacOSTitleBar from "./MacOSTitleBar";
 import { Button } from "@/components/ui/button";
-import { HistoryIcon, MessageSquare } from "lucide-react";
+import { HistoryIcon } from "lucide-react";
 import { dummyModels } from "@/data/dummyData";
 import { Message, Chat } from "@/types/chat";
 
@@ -126,50 +127,54 @@ const ChatLayout = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      <div className="flex flex-col w-64">
-        <ChatHistory 
-          chats={chats}
-          currentChatId={currentChatId}
-          onSelectChat={handleSelectChat}
-          onNewChat={handleNewChat}
-          collapsed={historySidebarCollapsed}
-        />
-        <ModelSidebar
-          selectedModel={selectedModelId}
-          onSelectModel={setSelectedModelId}
-          onNewChat={handleNewChat}
-          collapsed={modelSidebarCollapsed}
-          setCollapsed={setModelSidebarCollapsed}
-        />
-      </div>
-
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <div className="h-12 border-b flex items-center px-4 justify-between">
-          <div className="flex items-center">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setHistorySidebarCollapsed(!historySidebarCollapsed)}
-              className="mr-2"
-            >
-              <HistoryIcon className="h-4 w-4" />
-            </Button>
-            <h1 className="font-semibold">
-              {currentChatId ? chats.find(c => c.id === currentChatId)?.title || "Chat" : "Chat"}
-            </h1>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            Model: {selectedModelName}
-          </div>
+    <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground border border-border rounded-lg shadow-lg">
+      <MacOSTitleBar title="Ollama Chat" />
+      
+      <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-col w-64">
+          <ChatHistory 
+            chats={chats}
+            currentChatId={currentChatId}
+            onSelectChat={handleSelectChat}
+            onNewChat={handleNewChat}
+            collapsed={historySidebarCollapsed}
+          />
+          <ModelSidebar
+            selectedModel={selectedModelId}
+            onSelectModel={setSelectedModelId}
+            onNewChat={handleNewChat}
+            collapsed={modelSidebarCollapsed}
+            setCollapsed={setModelSidebarCollapsed}
+          />
         </div>
-        
-        <ChatContainer
-          messages={messages}
-          selectedModelName={selectedModelName}
-          loading={loading}
-        />
-        <MessageInput onSendMessage={handleSendMessage} isLoading={loading} />
+
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="h-12 border-b flex items-center px-4 justify-between">
+            <div className="flex items-center">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setHistorySidebarCollapsed(!historySidebarCollapsed)}
+                className="mr-2"
+              >
+                <HistoryIcon className="h-4 w-4" />
+              </Button>
+              <h1 className="font-semibold">
+                {currentChatId ? chats.find(c => c.id === currentChatId)?.title || "Chat" : "Chat"}
+              </h1>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Model: {selectedModelName}
+            </div>
+          </div>
+          
+          <ChatContainer
+            messages={messages}
+            selectedModelName={selectedModelName}
+            loading={loading}
+          />
+          <MessageInput onSendMessage={handleSendMessage} isLoading={loading} />
+        </div>
       </div>
     </div>
   );

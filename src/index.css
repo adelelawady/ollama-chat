@@ -50,8 +50,12 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground p-6;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  #root {
+    @apply max-w-6xl mx-auto h-screen;
   }
 }
 
@@ -83,4 +87,10 @@
 
 .message-animation {
   animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* MacOS Window Styles */
+.mac-window {
+  @apply rounded-lg overflow-hidden border border-gray-800;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
