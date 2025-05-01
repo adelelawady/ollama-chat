@@ -1,21 +1,20 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HistoryIcon, MessageSquare } from "lucide-react";
-import { Chat } from "@/types/chat";
+import { ChatSession } from "@/services/api";
 
 interface ChatHistoryProps {
-  chats: Chat[];
-  currentChatId: string | null;
-  onSelectChat: (chatId: string) => void;
+  sessions: ChatSession[];
+  currentSessionId: number | null;
+  onSelectSession: (sessionId: number) => void;
   onNewChat: () => void;
   collapsed: boolean;
 }
 
 const ChatHistory = ({ 
-  chats, 
-  currentChatId, 
-  onSelectChat, 
+  sessions, 
+  currentSessionId, 
+  onSelectSession, 
   onNewChat, 
   collapsed 
 }: ChatHistoryProps) => {
@@ -38,21 +37,21 @@ const ChatHistory = ({
       </div>
 
       <div className="flex-1 overflow-auto">
-        {chats.map((chat) => (
+        {sessions.map((session) => (
           <Button
-            key={chat.id}
+            key={session.id}
             variant="ghost"
             className={`w-full justify-start p-3 mb-1 text-left h-auto flex items-center gap-2 ${
-              chat.id === currentChatId ? "bg-secondary/50" : ""
+              session.id === currentSessionId ? "bg-secondary/50" : ""
             }`}
-            onClick={() => onSelectChat(chat.id)}
+            onClick={() => onSelectSession(session.id)}
           >
             <MessageSquare className="h-4 w-4 flex-shrink-0" />
             {!collapsed && (
               <div className="truncate">
-                <span className="block truncate">{chat.title}</span>
+                <span className="block truncate">{session.model_name}</span>
                 <span className="text-xs text-muted-foreground block truncate">
-                  {new Date(chat.updatedAt).toLocaleDateString()}
+                  {new Date(session.created_at).toLocaleDateString()}
                 </span>
               </div>
             )}

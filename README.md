@@ -1,73 +1,87 @@
-# Welcome to your Lovable project
+# Ollama Chat Application
 
-## Project info
+A modern chat application that allows you to interact with Ollama models through a beautiful user interface.
 
-**URL**: https://lovable.dev/projects/9585b003-ecc8-4b33-8a72-25ddb5114029
+## Prerequisites
 
-## How can I edit this code?
+- Node.js 18+ and npm
+- Python 3.8+
+- Ollama installed and running locally (default port: 11434)
 
-There are several ways of editing your application.
+## Setup
 
-**Use Lovable**
+### Backend Setup
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/9585b003-ecc8-4b33-8a72-25ddb5114029) and start prompting.
+1. Create a Python virtual environment:
+```bash
+python -m venv venv
+venv\Scripts\activate  # On Windows
+```
 
-Changes made via Lovable will be committed automatically to this repo.
+2. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-**Use your preferred IDE**
+3. Start the backend server:
+```bash
+python backend/main.py
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+The backend server will run on `http://localhost:8000`
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Frontend Setup
 
-Follow these steps:
+1. Install Node.js dependencies:
+```bash
+npm install
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+2. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The frontend will be available at `http://localhost:5173`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Features
 
-**Use GitHub Codespaces**
+- Browse and select from available Ollama models
+- Chat with selected models
+- View chat history
+- Create new chat sessions
+- Switch between different chat sessions
+- Modern, responsive UI with dark/light mode support
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+- `backend/` - Python FastAPI server
+  - `main.py` - Main server file with API endpoints
+  - `database.py` - SQLite database management
+  - `requirements.txt` - Python dependencies
 
-This project is built with:
+- `src/` - React frontend
+  - `components/` - UI components
+  - `services/` - API service layer
+  - `types/` - TypeScript type definitions
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## API Endpoints
 
-## How can I deploy this project?
+### Backend API
 
-Simply open [Lovable](https://lovable.dev/projects/9585b003-ecc8-4b33-8a72-25ddb5114029) and click on Share -> Publish.
+- `GET /api/models` - Get available Ollama models
+- `POST /api/chat` - Send chat message
+- `GET /api/chat/history` - Get chat history
+- `GET /api/chat/sessions` - Get chat sessions
 
-## Can I connect a custom domain to my Lovable project?
+## Contributing
 
-Yes, you can!
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## License
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+MIT

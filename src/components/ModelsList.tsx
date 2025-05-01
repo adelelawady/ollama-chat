@@ -1,38 +1,53 @@
-
 import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
 import ModelItem from "./ModelItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { OllamaModel } from "@/types/ollama";
-import { dummyModels } from "@/data/dummyData";
+import { api } from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ModelsListProps {
   selectedModel: string;
   onSelectModel: (modelId: string) => void;
+  onCreateNewChat: () => void;
 }
 
-const ModelsList = ({ selectedModel, onSelectModel }: ModelsListProps) => {
+interface OllamaModel {
+  name: string;
+  modified_at: string;
+  size: number;
+  digest: string;
+}
+
+const ModelsList = ({ selectedModel, onSelectModel, onCreateNewChat }: ModelsListProps) => {
   const [models, setModels] = useState<OllamaModel[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // In a real app, this would fetch from Ollama API
-    // This is simulating an API call with dummy data
     const fetchModels = async () => {
       setLoading(true);
       try {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setModels(dummyModels);
+        const response = await api.getModels();
+        setModels(response.models || []);
       } catch (error) {
         console.error("Failed to fetch models:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load models. Please make sure the backend server is running.",
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchModels();
-  }, []);
+  }, [toast]);
+
+  const handleModelSelect = (modelId: string) => {
+    onSelectModel(modelId);
+    onCreateNewChat();
+  };
 
   if (loading) {
     return (
@@ -47,11 +62,11 @@ const ModelsList = ({ selectedModel, onSelectModel }: ModelsListProps) => {
       <div className="flex flex-col gap-1">
         {models.map((model) => (
           <ModelItem
-            key={model.id}
+            key={model.name}
             name={model.name}
-            description={model.description}
-            selected={selectedModel === model.id}
-            onClick={() => onSelectModel(model.id)}
+            description={`Size: ${(model.size / 1024 / 1024 / 1024).toFixed(2)} GB`}
+            selected={selectedModel === model.name}
+            onClick={() => handleModelSelect(model.name)}
           />
         ))}
       </div>

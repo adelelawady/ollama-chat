@@ -7,121 +7,168 @@ import ChatHistory from "./ChatHistory";
 import MacOSTitleBar from "./MacOSTitleBar";
 import { Settings, History as HistoryIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { dummyModels } from "@/data/dummyData";
-import { Message, Chat } from "@/types/chat";
+import { api, Message as ApiMessage } from "@/services/api";
+import { ChatSession } from "@/services/api";
+import { Message } from "@/types/chat";
+import { useToast } from "@/components/ui/use-toast";
 
 const ChatLayout = () => {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [selectedModelId, setSelectedModelId] = useState("llama3");
+  const { toast } = useToast();
+  const [selectedModelName, setSelectedModelName] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [modelSidebarCollapsed, setModelSidebarCollapsed] = useState(false);
   const [historySidebarCollapsed, setHistorySidebarCollapsed] = useState(false);
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
+  const [isConnected, setIsConnected] = useState(true);
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const selectedModel = dummyModels.find(model => model.id === selectedModelId);
-  const selectedModelName = selectedModel?.name || "AI Assistant";
-
-  // Initialize with a default chat if no chats exist
+  // Check connection status periodically
   useEffect(() => {
-    if (chats.length === 0) {
-      const newChat = createNewChat();
-      setChats([newChat]);
-      setCurrentChatId(newChat.id);
-    }
-  }, []);
-
-  // Create a new chat object
-  const createNewChat = (): Chat => {
-    return {
-      id: Date.now().toString(),
-      title: "New Chat",
-      messages: [],
-      modelId: selectedModelId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    const checkConnection = async () => {
+      try {
+        await api.getModels();
+        setIsConnected(true);
+      } catch (error) {
+        setIsConnected(false);
+        toast({
+          variant: "destructive",
+          title: "Connection Error",
+          description: "Failed to connect to Ollama. Please make sure Ollama is running.",
+        });
+      }
     };
-  };
+
+    checkConnection();
+    const interval = setInterval(checkConnection, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [toast]);
+
+  // Convert API message to Chat message
+  const convertApiMessageToChatMessage = (apiMessage: ApiMessage): Message => ({
+    content: apiMessage.content,
+    role: apiMessage.role as "user" | "assistant" | "system",
+    timestamp: apiMessage.created_at,
+    modelName: selectedModelName
+  });
+
+  // Fetch chat sessions on component mount
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const sessions = await api.getChatSessions();
+        setChatSessions(sessions);
+        if (sessions.length > 0 && !currentSessionId) {
+          setCurrentSessionId(sessions[0].id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch chat sessions:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load chat sessions.",
+        });
+      }
+    };
+
+    fetchSessions();
+  }, [toast]);
+
+  // Fetch messages when session changes
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (currentSessionId) {
+        try {
+          const history = await api.getChatHistory(currentSessionId);
+          setMessages(history.map(convertApiMessageToChatMessage));
+        } catch (error) {
+          console.error("Failed to fetch chat history:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load chat history.",
+          });
+        }
+      } else {
+        setMessages([]);
+      }
+    };
+
+    fetchMessages();
+  }, [currentSessionId]);
 
   const handleNewChat = () => {
-    const newChat = createNewChat();
-    setChats(prev => [newChat, ...prev]);
-    setCurrentChatId(newChat.id);
+    setCurrentSessionId(null);
     setMessages([]);
   };
 
-  const handleSelectChat = (chatId: string) => {
-    setCurrentChatId(chatId);
-    const selectedChat = chats.find(chat => chat.id === chatId);
-    if (selectedChat) {
-      setMessages(selectedChat.messages);
-      setSelectedModelId(selectedChat.modelId);
-    }
-  };
-
-  const updateChatTitle = (chatId: string, messages: Message[]) => {
-    if (messages.length >= 1) {
-      const userMessage = messages.find(m => m.role === 'user')?.content || '';
-      const title = userMessage.length > 30 
-        ? `${userMessage.substring(0, 30)}...` 
-        : userMessage || 'New Chat';
-
-      setChats(prev => prev.map(chat => 
-        chat.id === chatId 
-          ? { ...chat, title, updatedAt: new Date().toISOString() } 
-          : chat
-      ));
-    }
+  const handleSelectSession = (sessionId: number) => {
+    setCurrentSessionId(sessionId);
   };
 
   const handleSendMessage = async (content: string) => {
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content,
-      role: "user",
-      timestamp: new Date().toISOString(),
-    };
+    if (!selectedModelName) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select a model first",
+      });
+      return;
+    }
+
+    if (!isConnected) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Cannot send message: Ollama is not connected",
+      });
+      return;
+    }
     
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
     setLoading(true);
 
     try {
-      // Simulate AI response delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock AI response
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: generateMockResponse(content, selectedModelName),
-        role: "assistant",
-        modelName: selectedModelName,
+      // Add user message immediately
+      const userMessage: Message = {
+        role: "user",
+        content: content,
         timestamp: new Date().toISOString(),
+        modelName: selectedModelName
       };
-      
-      const updatedMessages = [...newMessages, aiResponse];
-      setMessages(updatedMessages);
+      setMessages(prev => [...prev, userMessage]);
 
-      // Update chat in history
-      if (currentChatId) {
-        setChats(prev => prev.map(chat => 
-          chat.id === currentChatId 
-            ? { 
-                ...chat, 
-                messages: updatedMessages,
-                updatedAt: new Date().toISOString(),
-                modelId: selectedModelId
-              } 
-            : chat
-        ));
-        
-        // Update chat title based on first message
-        updateChatTitle(currentChatId, updatedMessages);
+      const response = await api.sendChat({
+        model: selectedModelName,
+        messages: [{ role: "user", content }],
+        session_id: currentSessionId || undefined
+      });
+
+      // Add assistant message
+      if (response.message) {
+        const assistantMessage: Message = {
+          role: "assistant",
+          content: response.message.content,
+          timestamp: new Date().toISOString(),
+          modelName: selectedModelName
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+      }
+
+      // Update chat sessions if a new session was created
+      if (response.session_id && !currentSessionId) {
+        const sessions = await api.getChatSessions();
+        setChatSessions(sessions);
+        setCurrentSessionId(response.session_id);
       }
     } catch (error) {
-      console.error("Error getting response:", error);
+      console.error("Error sending message:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -134,15 +181,15 @@ const ChatLayout = () => {
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-col w-64">
           <ChatHistory 
-            chats={chats}
-            currentChatId={currentChatId}
-            onSelectChat={handleSelectChat}
+            sessions={chatSessions}
+            currentSessionId={currentSessionId}
+            onSelectSession={handleSelectSession}
             onNewChat={handleNewChat}
             collapsed={historySidebarCollapsed}
           />
           <ModelSidebar
-            selectedModel={selectedModelId}
-            onSelectModel={setSelectedModelId}
+            selectedModel={selectedModelName}
+            onSelectModel={setSelectedModelName}
             onNewChat={handleNewChat}
             collapsed={modelSidebarCollapsed}
             setCollapsed={setModelSidebarCollapsed}
@@ -161,12 +208,14 @@ const ChatLayout = () => {
                 <HistoryIcon className="h-4 w-4" />
               </Button>
               <h1 className="font-semibold">
-                {currentChatId ? chats.find(c => c.id === currentChatId)?.title || "Chat" : "Chat"}
+                {currentSessionId 
+                  ? chatSessions.find(s => s.id === currentSessionId)?.model_name || "Chat" 
+                  : "New Chat"}
               </h1>
             </div>
             <div className="flex items-center gap-2">
               <div className="text-sm text-muted-foreground">
-                Model: {selectedModelName}
+                Model: {selectedModelName || "Not selected"}
               </div>
               <Button 
                 variant="ghost" 
@@ -179,26 +228,22 @@ const ChatLayout = () => {
           </div>
           
           <ChatContainer
-            messages={messages}
             selectedModelName={selectedModelName}
+            sessionId={currentSessionId || undefined}
+            messages={messages}
+            onSendMessage={handleSendMessage}
             loading={loading}
+            isConnected={isConnected}
           />
-          <MessageInput onSendMessage={handleSendMessage} isLoading={loading} />
+          <MessageInput 
+            onSendMessage={handleSendMessage} 
+            isLoading={loading}
+            disabled={!isConnected}
+          />
         </div>
       </div>
     </div>
   );
-};
-
-// Helper function for mock responses
-const generateMockResponse = (userMessage: string, modelName: string): string => {
-  const responses = [
-    `I'm ${modelName}, an AI assistant. I'm here to help answer your question about "${userMessage.substring(0, 30)}..."\n\nBased on my training, I can tell you that this is a fascinating topic. Would you like me to elaborate further?`,
-    `Thanks for your query. As ${modelName}, I can provide some insights on "${userMessage.substring(0, 30)}..."\n\nThere are multiple perspectives to consider here. Would you like me to explore a specific angle?`,
-    `${modelName} here! Regarding "${userMessage.substring(0, 30)}...", I think the key aspects to consider are:\n\n1. The fundamental principles\n2. Practical applications\n3. Future developments\n\nWhich would you like me to focus on?`
-  ];
-  
-  return responses[Math.floor(Math.random() * responses.length)];
 };
 
 export default ChatLayout;

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import ModelsList from "./ModelsList";
 import { Button } from "@/components/ui/button";
@@ -51,6 +50,7 @@ const ModelSidebar = ({
           <ModelsList 
             selectedModel={selectedModel} 
             onSelectModel={onSelectModel}
+            onCreateNewChat={onNewChat}
           />
         </div>
       )}

@@ -1,28 +1,47 @@
-
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Message } from "@/types/chat";
 import ChatMessage from "./ChatMessage";
+import { Badge } from "@/components/ui/badge";
 
 interface ChatContainerProps {
-  messages: Message[];
   selectedModelName: string;
+  sessionId?: number;
+  messages: Message[];
+  onSendMessage: (content: string) => Promise<void>;
   loading: boolean;
+  isConnected: boolean;
 }
 
-const ChatContainer = ({ messages, selectedModelName, loading }: ChatContainerProps) => {
+const ChatContainer = ({ 
+  selectedModelName, 
+  sessionId, 
+  messages,
+  onSendMessage,
+  loading,
+  isConnected
+}: ChatContainerProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
+  // Scroll to bottom when messages change or loading state changes
   useEffect(() => {
-    // Scroll to bottom when messages change
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current;
-      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, loading]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-180px)]">
+      <div className="flex justify-between items-center px-4 py-2">
+        <div className="text-sm text-muted-foreground">
+          {selectedModelName ? `Using model: ${selectedModelName}` : "No model selected"}
+        </div>
+        <Badge variant={isConnected ? "default" : "destructive"}>
+          {isConnected ? "Connected" : "Disconnected"}
+        </Badge>
+      </div>
+
       {messages.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center">
           <div className="text-4xl font-bold mb-2">Ollama Chat</div>
@@ -32,7 +51,7 @@ const ChatContainer = ({ messages, selectedModelName, loading }: ChatContainerPr
         </div>
       ) : (
         <ScrollArea ref={scrollAreaRef} className="flex-1 px-4">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto space-y-4">
             {messages.map((message, index) => (
               <ChatMessage key={index} message={message} />
             ))}
@@ -46,6 +65,7 @@ const ChatContainer = ({ messages, selectedModelName, loading }: ChatContainerPr
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
       )}
