@@ -1,7 +1,8 @@
 
 import { cn } from "@/lib/utils";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Message } from "@/types/chat";
+import { UserRound } from "lucide-react";
 
 interface ChatMessageProps {
   message: Message;
@@ -18,7 +19,9 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
       )}
     >
       <Avatar className={cn("h-8 w-8", isUser ? "bg-primary" : "bg-ollama")}>
-        <span className="text-xs">{isUser ? "You" : "AI"}</span>
+        <AvatarFallback className={cn("text-xs", isUser ? "text-white" : "text-white")}>
+          {isUser ? <UserRound size={16} /> : "AI"}
+        </AvatarFallback>
       </Avatar>
       
       <div className="flex-1 space-y-2">

@@ -1,22 +1,74 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ModelSidebar from "./ModelSidebar";
 import ChatContainer from "./ChatContainer";
 import MessageInput from "./MessageInput";
+import ChatHistory from "./ChatHistory";
 import { dummyModels } from "@/data/dummyData";
-import { Message } from "@/types/chat";
+import { Message, Chat } from "@/types/chat";
 
 const ChatLayout = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedModelId, setSelectedModelId] = useState("llama3");
   const [loading, setLoading] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [modelSidebarCollapsed, setModelSidebarCollapsed] = useState(false);
+  const [historySidebarCollapsed, setHistorySidebarCollapsed] = useState(false);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
 
   const selectedModel = dummyModels.find(model => model.id === selectedModelId);
   const selectedModelName = selectedModel?.name || "AI Assistant";
 
+  // Initialize with a default chat if no chats exist
+  useEffect(() => {
+    if (chats.length === 0) {
+      const newChat = createNewChat();
+      setChats([newChat]);
+      setCurrentChatId(newChat.id);
+    }
+  }, []);
+
+  // Create a new chat object
+  const createNewChat = (): Chat => {
+    return {
+      id: Date.now().toString(),
+      title: "New Chat",
+      messages: [],
+      modelId: selectedModelId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  };
+
   const handleNewChat = () => {
+    const newChat = createNewChat();
+    setChats(prev => [newChat, ...prev]);
+    setCurrentChatId(newChat.id);
     setMessages([]);
+  };
+
+  const handleSelectChat = (chatId: string) => {
+    setCurrentChatId(chatId);
+    const selectedChat = chats.find(chat => chat.id === chatId);
+    if (selectedChat) {
+      setMessages(selectedChat.messages);
+      setSelectedModelId(selectedChat.modelId);
+    }
+  };
+
+  const updateChatTitle = (chatId: string, messages: Message[]) => {
+    if (messages.length >= 1) {
+      const userMessage = messages.find(m => m.role === 'user')?.content || '';
+      const title = userMessage.length > 30 
+        ? `${userMessage.substring(0, 30)}...` 
+        : userMessage || 'New Chat';
+
+      setChats(prev => prev.map(chat => 
+        chat.id === chatId 
+          ? { ...chat, title, updatedAt: new Date().toISOString() } 
+          : chat
+      ));
+    }
   };
 
   const handleSendMessage = async (content: string) => {
@@ -28,7 +80,8 @@ const ChatLayout = () => {
       timestamp: new Date().toISOString(),
     };
     
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setLoading(true);
 
     try {
@@ -44,7 +97,25 @@ const ChatLayout = () => {
         timestamp: new Date().toISOString(),
       };
       
-      setMessages(prev => [...prev, aiResponse]);
+      const updatedMessages = [...newMessages, aiResponse];
+      setMessages(updatedMessages);
+
+      // Update chat in history
+      if (currentChatId) {
+        setChats(prev => prev.map(chat => 
+          chat.id === currentChatId 
+            ? { 
+                ...chat, 
+                messages: updatedMessages,
+                updatedAt: new Date().toISOString(),
+                modelId: selectedModelId
+              } 
+            : chat
+        ));
+        
+        // Update chat title based on first message
+        updateChatTitle(currentChatId, updatedMessages);
+      }
     } catch (error) {
       console.error("Error getting response:", error);
     } finally {
@@ -53,22 +124,51 @@ const ChatLayout = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <ModelSidebar
-        selectedModel={selectedModelId}
-        onSelectModel={setSelectedModelId}
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      <ChatHistory 
+        chats={chats}
+        currentChatId={currentChatId}
+        onSelectChat={handleSelectChat}
         onNewChat={handleNewChat}
-        collapsed={sidebarCollapsed}
-        setCollapsed={setSidebarCollapsed}
+        collapsed={historySidebarCollapsed}
       />
-      
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <ChatContainer
-          messages={messages}
-          selectedModelName={selectedModelName}
-          loading={loading}
+
+      <div className="flex flex-1 overflow-hidden">
+        <ModelSidebar
+          selectedModel={selectedModelId}
+          onSelectModel={setSelectedModelId}
+          onNewChat={handleNewChat}
+          collapsed={modelSidebarCollapsed}
+          setCollapsed={setModelSidebarCollapsed}
         />
-        <MessageInput onSendMessage={handleSendMessage} isLoading={loading} />
+        
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="h-12 border-b flex items-center px-4 justify-between">
+            <div className="flex items-center">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setHistorySidebarCollapsed(!historySidebarCollapsed)}
+                className="mr-2"
+              >
+                <HistoryIcon className="h-4 w-4" />
+              </Button>
+              <h1 className="font-semibold">
+                {currentChatId ? chats.find(c => c.id === currentChatId)?.title || "Chat" : "Chat"}
+              </h1>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Model: {selectedModelName}
+            </div>
+          </div>
+          
+          <ChatContainer
+            messages={messages}
+            selectedModelName={selectedModelName}
+            loading={loading}
+          />
+          <MessageInput onSendMessage={handleSendMessage} isLoading={loading} />
+        </div>
       </div>
     </div>
   );
