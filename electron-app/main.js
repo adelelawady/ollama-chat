@@ -95,6 +95,7 @@ function createWindow() {
   });
 
   ipcMain.on('window-close', () => {
+    console.log("Closing window");
     mainWindow.close();
   });
 
@@ -124,7 +125,7 @@ function createWindow() {
         window.electron = {
           minimize: () => { require('electron').ipcRenderer.send('window-minimize'); },
           maximize: () => { require('electron').ipcRenderer.send('window-maximize'); },
-        close: () => { require('electron').ipcRenderer.send('window-close'); }
+        close: () => { require('electron').ipcRenderer.send('window-close'); }  
       };
       `);
     }, 1000); // 1 second delay to ensure React has rendered

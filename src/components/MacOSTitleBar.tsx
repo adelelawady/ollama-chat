@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { X, Minus, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Extend the Window interface to include ipcRenderer
+// Extend the Window interface to include electron
 declare global {
   interface Window {
-    ipcRenderer?: {
-      send: (channel: string, ...args: any[]) => void;
+    electron?: {
+      minimize: () => void;
+      maximize: () => void;
+      close: () => void;
     };
   }
 }
@@ -18,20 +20,20 @@ interface MacOSTitleBarProps {
 
 const MacOSTitleBar = ({ title = "Ollama Chat" }: MacOSTitleBarProps) => {
   const handleClose = () => {
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('window-close');
+    if (window.electron) {
+      window.electron.close();
     }
   };
 
   const handleMinimize = () => {
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('window-minimize');
+    if (window.electron) {
+      window.electron.minimize();
     }
   };
 
   const handleMaximize = () => {
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('window-maximize');
+    if (window.electron) {
+      window.electron.maximize();
     }
   };
 
