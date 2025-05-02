@@ -79,14 +79,7 @@ function createWindow() {
     console.log(`Renderer console [${level}]: ${message}`);
   });
 
-  // Expose window control functions to renderer
-  mainWindow.webContents.executeJavaScript(`
-    window.electron = {
-      minimize: () => { require('electron').ipcRenderer.send('window-minimize'); },
-      maximize: () => { require('electron').ipcRenderer.send('window-maximize'); },
-      close: () => { require('electron').ipcRenderer.send('window-close'); }
-    };
-  `);
+
 
   // Handle window control events
   ipcMain.on('window-minimize', () => {
@@ -127,6 +120,12 @@ function createWindow() {
         } else {
           console.log('Title bar not found');
         }
+
+        window.electron = {
+          minimize: () => { require('electron').ipcRenderer.send('window-minimize'); },
+          maximize: () => { require('electron').ipcRenderer.send('window-maximize'); },
+        close: () => { require('electron').ipcRenderer.send('window-close'); }
+      };
       `);
     }, 1000); // 1 second delay to ensure React has rendered
   });

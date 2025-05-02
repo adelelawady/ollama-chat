@@ -1,8 +1,11 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Message } from "@/types/chat";
 import ChatMessage from "./ChatMessage";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { api } from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ChatContainerProps {
   selectedModelName: string;
@@ -11,6 +14,7 @@ interface ChatContainerProps {
   onSendMessage: (content: string) => Promise<void>;
   loading: boolean;
   isConnected: boolean;
+  onSelectModel: (modelName: string) => void;
 }
 
 const ChatContainer = ({ 
@@ -19,23 +23,57 @@ const ChatContainer = ({
   messages,
   onSendMessage,
   loading,
-  isConnected
+  isConnected,
+  onSelectModel
 }: ChatContainerProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [models, setModels] = useState<{ name: string }[]>([]);
+  const { toast } = useToast();
   
   // Scroll to bottom when messages change or loading state changes
+  /*
   useEffect(() => {
     if (messagesEndRef.current) {
-     // messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, loading]);
+  */
+  // Fetch models
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const response = await api.getModels();
+        setModels(response.models || []);
+      } catch (error) {
+        console.error("Failed to fetch models:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load models. Please make sure the backend server is running.",
+        });
+      }
+    };
+
+    fetchModels();
+  }, [toast]);
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="flex justify-between items-center px-4 py-2 border-b">
-        <div className="text-sm text-muted-foreground">
-          {selectedModelName ? `Using model: ${selectedModelName}` : "No model selected"}
+        <div className="flex items-center gap-2">
+          <Select value={selectedModelName} onValueChange={onSelectModel}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select a model" />
+            </SelectTrigger>
+            <SelectContent>
+              {models.map((model) => (
+                <SelectItem key={model.name} value={model.name}>
+                  {model.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <Badge variant={isConnected ? "default" : "destructive"}>
           {isConnected ? "Connected" : "Disconnected"}

@@ -214,9 +214,6 @@ const ChatLayout = () => {
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              <div className="text-sm text-muted-foreground">
-                Model: {selectedModelName || "Not selected"}
-              </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -234,6 +231,7 @@ const ChatLayout = () => {
             onSendMessage={handleSendMessage}
             loading={loading}
             isConnected={isConnected}
+            onSelectModel={setSelectedModelName}
           />
           <MessageInput 
             onSendMessage={handleSendMessage} 
