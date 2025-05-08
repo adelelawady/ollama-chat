@@ -4,3 +4,5 @@ python-dotenv==1.0.1
 httpx==0.26.0
 pydantic==2.6.1
 python-multipart==0.0.9 
+requests
+flask
