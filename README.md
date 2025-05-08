@@ -7,6 +7,12 @@
 ## Description
 Ollama Chat is a chat application that allows users to interact with various models. It features a backend server for handling chat sessions and a frontend built with React and Electron for a seamless desktop experience.
 
+
+<img width="900" alt="Screenshot 2025-05-08 145129" src="https://github.com/user-attachments/assets/ad9f7e33-9995-4372-9d4c-9fb184eaa4aa" />
+
+
+
+
 ## Installation
 To set up the project, follow these steps:
 
